@@ -179,3 +179,15 @@ class OAuth2Reference(ConsumerAuthentication):
     def clean(self):
         self.client_id = self.client_id or None  # Don't store empty strings
         self.client_secret = self.client_secret or None  # Don't store empty strings
+
+
+@python_2_unicode_compatible
+class AclReference(ConsumerAuthentication):
+    group = models.CharField(null=False, blank=False, max_length=64)
+
+    class Meta:
+        verbose_name = _('ACL Reference')
+        verbose_name_plural = _('ACL References')
+
+    def __str__(self):
+        return 'AclReference(group: %s)' % self.group

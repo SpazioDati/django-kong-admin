@@ -35,6 +35,7 @@ def show_config(request):
         result['consumers'][i]['basicauth'] = list(kong.consumers.basic_auth(result['consumers'][i]['id']).iterate()),
         result['consumers'][i]['keyauth'] = list(kong.consumers.key_auth(result['consumers'][i]['id']).iterate()),
         result['consumers'][i]['oauth2'] = list(kong.consumers.oauth2(result['consumers'][i]['id']).iterate()),
+        result['consumers'][i]['acl'] = list(kong.consumers.acl(result['consumers'][i]['id']).iterate()),
 
     config = json.dumps(result, sort_keys=True, indent=4, separators=(',', ': '))
     return render(request, 'kong_admin/show_config.html', {'config': config})

@@ -4,7 +4,7 @@ import uuid
 from abc import ABCMeta, abstractmethod
 
 from kong.exceptions import ConflictError
-from kong_admin.models import ConsumerReference, BasicAuthReference, KeyAuthReference, OAuth2Reference
+from kong_admin.models import ConsumerReference, BasicAuthReference, KeyAuthReference, OAuth2Reference, AclReference
 
 from .base import KongProxySyncEngine
 
@@ -18,6 +18,9 @@ class ConsumerSyncEngine(KongProxySyncEngine):
 
     def oauth2(self):
         return OAuth2SyncEngine()
+
+    def acl(self):
+        return AclSyncEngine()
 
     def get_proxy_class(self):
         return ConsumerReference
@@ -58,9 +61,12 @@ class ConsumerSyncEngine(KongProxySyncEngine):
         self.basic_auth().synchronize(client, BasicAuthReference.objects.filter(consumer=obj), delete=True)
         self.key_auth().synchronize(client, KeyAuthReference.objects.filter(consumer=obj), delete=True)
         self.oauth2().synchronize(client, OAuth2Reference.objects.filter(consumer=obj), delete=True)
+        self.acl().synchronize(client, AclReference.objects.filter(consumer=obj), delete=True)
         super(ConsumerSyncEngine, self).after_publish(client, obj)
 
     def before_withdraw(self, client, obj):
+        for acl in AclReference.objects.filter(consumer=obj):
+            self.acl().withdraw(client, acl)
         for oauth2 in OAuth2Reference.objects.filter(consumer=obj):
             self.oauth2().withdraw(client, oauth2)
         for key_auth in KeyAuthReference.objects.filter(consumer=obj):
@@ -181,4 +187,25 @@ class OAuth2SyncEngine(ConsumerAuthSyncEngine):
             self.get_proxy_class().objects.filter(id=obj.id).update(
                 client_id=obj.client_id, client_secret=obj.client_secret)
 
+        return uuid.UUID(auth_struct['id'])
+
+
+class AclSyncEngine(ConsumerAuthSyncEngine):
+    def get_proxy_class(self):
+        return AclReference
+
+    def get_auth_client(self, client, consumer_kong_id):
+        return client.consumers.acl(str(consumer_kong_id))
+
+    def on_publish(self, client, obj):
+        """
+        :param client: The client to interface with kong with
+        :type client: kong.contract.KongAdminContract
+        :param obj: The KongProxyModel to work with
+        :type obj: kong_admin.models.AclReference
+        :rtype: uuid.UUID
+        :return: The uuid of the entity that has been published
+        """
+        auth_struct = self.get_auth_client(client, obj.consumer.kong_id).create_or_update(
+            acl_id=obj.kong_id, group=obj.group)
         return uuid.UUID(auth_struct['id'])

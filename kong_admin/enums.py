@@ -21,6 +21,7 @@ class Plugins(enum.Enum):
     IP_RESTRICTION = 15
     ACL = 16
     JWT = 17
+    ACL_AUTHENTICATION = 18
 
     MASHAPE_ANALYTICS = 99
 
@@ -42,5 +43,6 @@ class Plugins(enum.Enum):
         IP_RESTRICTION: 'ip-restriction',
         ACL: 'acl',
         JWT: 'jwt',
-        MASHAPE_ANALYTICS: 'mashape-analytics'
+        MASHAPE_ANALYTICS: 'mashape-analytics',
+        ACL_AUTHENTICATION: 'acl'
     }

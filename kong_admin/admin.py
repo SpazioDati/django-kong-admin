@@ -9,7 +9,7 @@ from django.http.response import HttpResponseRedirect
 from jsonfield2.fields import JSONField
 
 from .models import APIReference, PluginConfigurationReference, ConsumerReference, \
-    BasicAuthReference, KeyAuthReference, OAuth2Reference
+    BasicAuthReference, KeyAuthReference, OAuth2Reference, AclReference
 from .factory import get_kong_client
 from .logic import synchronize_apis, synchronize_api, synchronize_plugin_configurations, \
     synchronize_plugin_configuration, synchronize_consumers, synchronize_consumer
@@ -190,6 +190,12 @@ class OAuthInline(admin.StackedInline):
     fields = ('name', 'redirect_uri', 'client_id', 'client_secret')
 
 
+class AclInline(admin.StackedInline):
+    model = AclReference
+    extra = 0
+    fields = ('group',)
+
+
 class ConsumerReferenceAdmin(CustomModelAdmin):
     list_display = ('username_or_custom_id', 'enabled', 'synchronized', 'kong_id')
     list_display_buttons = [{
@@ -219,7 +225,8 @@ class ConsumerReferenceAdmin(CustomModelAdmin):
     inlines = [
         BasicAuthInline,
         KeyAuthInline,
-        OAuthInline
+        OAuthInline,
+        AclInline
     ]
 
     def username_or_custom_id(self, obj):
